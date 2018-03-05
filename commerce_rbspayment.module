@@ -1,0 +1,981 @@
+<?php
+//
+///**
+// * @file
+// * Provides a RBS Payment API (via XML) payment method for Drupal Commerce (width redirection).
+// */
+//
+//
+///**
+// * Implements hook_menu().
+// */
+//function commerce_rbspayment_menu() {
+//  $items = array();
+//
+//  $items['checkout/%commerce_order/rbspayment_response'] = array(
+//    'page callback' => 'commerce_rbspayment_checkout_response_success',
+//    'page arguments' => array(1),
+//    'access arguments' => array('access content'),
+//    'file' => 'includes/commerce_rbspayment.pages.inc',
+//    'type' => MENU_CALLBACK,
+//  );
+//  $items['checkout/%commerce_order/rbspayment_fail'] = array(
+//    'page callback' => 'commerce_rbspayment_checkout_response_fail',
+//    'page arguments' => array(1),
+//    'access arguments' => array('access content'),
+//    'file' => 'includes/commerce_rbspayment.pages.inc',
+//    'type' => MENU_CALLBACK,
+//  );
+//  $items['checkout/%commerce_order/rbs_payment_back'] = array(
+//    'page callback' => 'commerce_rbspayment_payment_back',
+//    'page arguments' => array(1),
+//    'access arguments' => array('access content'),
+//    'file' => 'includes/commerce_rbspayment.pages.inc',
+//    'type' => MENU_CALLBACK,
+//  );
+//  $items['user/%user/orders/%commerce_order/rbspayment_add_payment'] = array(
+//    'title' => 'Add payment',
+//    'page callback' => 'drupal_get_form',
+//    'page arguments' => array('commerce_rbspayment_order_add_payment_form', 1, 3),
+//    'file' => 'includes/commerce_rbspayment.pages.inc',
+//    'access arguments' => array('access content'),
+//  );
+//  $items['user/%user/orders/%commerce_order/rbspayment_payment_added'] = array(
+//    'title callback' => 'Add payment',
+//    'page callback' => 'commerce_rbspayment_add_payment_response_success',
+//    'page arguments' => array(1, 3),
+//    'file' => 'includes/commerce_rbspayment.pages.inc',
+//    'access arguments' => array('access content'),
+//  );
+//  $items['user/%user/orders/%commerce_order/rbspayment_payment_failed'] = array(
+//    'title callback' => 'Add payment',
+//    'page callback' => 'commerce_rbspayment_add_payment_response_fail',
+//    'page arguments' => array(1, 3),
+//    'file' => 'includes/commerce_rbspayment.pages.inc',
+//    'access arguments' => array('access content'),
+//  );
+//  $items['admin/commerce/orders/%commerce_order/payment/%commerce_payment_transaction/rbspayment_refund'] = array(
+//    'title' => 'Refund',
+//    'page arguments' => array('commerce_rbspayment_transaction_refund_formcommerce_rbspayment_transaction_refund_form', 5),
+//    'page callback' => 'drupal_get_form',
+//    'access callback' => 'commerce_rbspayment_transaction_refund_access',
+//    'access arguments' => array(5),
+//    'type' => MENU_LOCAL_TASK,
+//    'context' => MENU_CONTEXT_INLINE,
+//    'file' => 'includes/commerce_rbspayment.admin.inc',
+//    'weight' => 10,
+//  );
+//  $items['admin/commerce/orders/%commerce_order/payment/%commerce_payment_transaction/rbspayment_info'] = array(
+//    'title' => 'RBS Info',
+//    'page arguments' => array(3, 5),
+//    'page callback' => 'commerce_rbspayment_transaction_info_page',
+//    'access callback' => 'commerce_rbspayment_transaction_extended_info_access',
+//    'access arguments' => array(5),
+//    'type' => MENU_LOCAL_TASK,
+//    'context' => MENU_CONTEXT_INLINE,
+//    'file' => 'includes/commerce_rbspayment.admin.inc',
+//    'weight' => 20,
+//  );
+//  $items['admin/commerce/config/payment-methods/rbspayment'] = array(
+//    'title' => 'Commerce RBS payment settings',
+//    'page callback' => 'drupal_get_form',
+//    'access arguments' => array('configure commerce rbspayment'),
+//    'page arguments' => array('variable_group_form', 'commerce_rbspayment_main_settings'),
+//    'type' => MENU_NORMAL_ITEM,
+//    'weight' => 100,
+//  );
+//  $items['admin/commerce/config/payment-methods/rbspayment/main'] = array(
+//    'title' => 'Commerce RBS payment settings',
+//    'type' => MENU_DEFAULT_LOCAL_TASK,
+//    'weight' => 0,
+//  );
+//  $items['admin/commerce/config/payment-methods/rbspayment/tokens'] = array(
+//    'title' => 'Commerce RBS payment Order tokens',
+//    'page callback' => 'drupal_get_form',
+//    'access arguments' => array('configure commerce rbspayment'),
+//    'page arguments' => array('variable_group_form', 'commerce_rbspayment_order_tokens'),
+//    'type' => MENU_LOCAL_TASK,
+//    'weight' => 10,
+//  );
+//  $items['admin/commerce/config/payment-methods/rbspayment/operations'] = array(
+//    'title' => "Today's operations",
+//    'page callback' => 'drupal_get_form',
+//    'page arguments' => array('commerce_rbspayment_date_operations'),
+//    'file' => 'includes/commerce_rbspayment.admin.inc',
+//    'type' => MENU_LOCAL_TASK,
+//    'access arguments' => array('view all rbspayment transactions'),
+//    'weight' => 20,
+//  );
+//  $items['admin/commerce/config/payment-methods/rbspayment/operations/%'] = array(
+//    'title' => 'Specific date operations',
+//    'page callback' => 'drupal_get_form',
+//    'page arguments' => array('commerce_rbspayment_date_operations', 6),
+//    'file' => 'includes/commerce_rbspayment.admin.inc',
+//    'access arguments' => array('view all rbspayment transactions'),
+//  );
+//  $items['admin/commerce/config/payment-methods/rbspayment/operations/%/%'] = array(
+//    'title' => 'Detailed RBS transaction info',
+//    'page callback' => 'commerce_rbspayment_detailed_transaction_info',
+//    'page arguments' => array(7),
+//    'file' => 'includes/commerce_rbspayment.admin.inc',
+//    'access arguments' => array('view rbspayment transaction extended info'),
+//  );
+//
+//  return $items;
+//}
+//
+///**
+// * @param object $transaction
+// *
+// * @return bool
+// */
+//function commerce_rbspayment_transaction_refund_access($transaction) {
+//  return $transaction->payment_method == 'commerce_rbspayment'
+//    && $transaction->amount > 0 && $transaction->status == COMMERCE_PAYMENT_STATUS_SUCCESS
+//    && user_access('refund rbspayment transactions');
+//}
+//
+///**
+// * @param object $transaction
+// *
+// * @return bool
+// */
+//function commerce_rbspayment_transaction_extended_info_access($transaction) {
+//  return $transaction->payment_method == 'commerce_rbspayment' && $transaction->remote_id
+//    && user_access('view rbspayment transaction extended info');
+//}
+
+
+/**
+ * Implements hook_cronapi().
+ */
+function commerce_rbspayment_cronapi($op, $job = NULL) {
+  $items = [];
+
+  $items['commerce_rbspayment_check_pending_transactions'] = [
+    'description' => 'Check RBS bank card payment transactions statuses',
+    'rule' => '*/5 * * * *', // Each 5 minutes.
+  ];
+
+  return $items;
+}
+
+///**
+// * @return array
+// */
+//function commerce_rbspayment_unfinished_payments_statuses() {
+//  // First check the static cache for an order states array.
+//  $order_statuses = &drupal_static(__FUNCTION__);
+//
+//  // If it did not exist, fetch the statuses now.
+//  if (empty($order_statuses)) {
+//    $order_statuses = module_invoke_all('commerce_rbspayment_unfinished_payments_statuses_info');
+//  }
+//
+//  return $order_statuses;
+//}
+//
+///**
+// * @return array
+// */
+//function commerce_rbspayment_commerce_rbspayment_unfinished_payments_statuses_info() {
+//  return array(
+//    'checkout_payment' => array(
+//      'success_status' => 'checkout_complete',
+//      'fail_status' => 'cart',
+//    ),
+//  );
+//}
+//
+///**
+// * Implements hook_theme().
+// */
+//function commerce_rbspayment_theme() {
+//  $themes = array();
+//
+//  $themes['commerce_rbspayment_payment_details'] = array(
+//    'variables' => array(
+//      'order' => NULL,
+//      'payment_method' => NULL,
+//      'path' => '',
+//    ),
+//    'template' => 'templates/payment-details',
+//  );
+//
+//  return $themes;
+//}
+//
+///**
+// * Payment method callback: checkout form.
+// */
+//function commerce_rbspayment_submit_form($payment_method, $pane_values, $checkout_pane, $order) {
+//  $form = array();
+//
+//  $details_html = theme('commerce_rbspayment_payment_details', array(
+//    'order' => $order,
+//    'payment_method' => $payment_method,
+//    'path' => base_path() . drupal_get_path('module', 'commerce_rbspayment'),
+//  ));
+//  $form['rbspayment_information'] = array('#markup' => $details_html);
+//
+//  return $form;
+//}
+//
+///**
+// * Payment method callback: checkout form submission.
+// */
+//function commerce_rbspayment_submit_form_submit($payment_method, $pane_form, $pane_values, &$order, $charge) {
+//  if (isset($pane_values['mode']) && $pane_values['mode'] == 'terminal_refund' && $charge['amount'] < 0) {
+//    commerce_rbspayment_order_refund_amount($order, -$charge['amount'], $charge['currency_code']);
+//  }
+//
+//  return TRUE;
+//}
+//
+///**
+// * @param array $form
+// * @param array $form_state
+// */
+//function commerce_rbspayment_form_commerce_payment_order_transaction_add_form_alter(&$form, &$form_state) {
+//  $balance = commerce_payment_order_balance($form_state['order']);
+//  if ($balance['amount'] == 0) {
+//    $options_keys = array_keys($form['payment_method']['#options']);
+//    foreach ($options_keys as $key) {
+//      if (strpos($key, 'commerce_rbspayment') === 0) {
+//        unset($form['payment_method']['#options'][$key]);
+//        break;
+//      }
+//    }
+//  }
+//
+//  $form['payment_terminal']['amount']['#default_value'] = $balance['amount'] / 100;
+//  if (isset($form_state['payment_method']) && $form_state['payment_method']['method_id'] == 'commerce_rbspayment') {
+//    if ($balance['amount'] > 0) {
+//      _commerce_rbspayment_order_transaction_payment_terminal_add_payment_modify($form, $form_state['order']);
+//    }
+//    else {
+//      _commerce_rbspayment_order_transaction_payment_terminal_refund_modify($form['payment_terminal']);
+//    }
+//  }
+//}
+//
+///**
+// * @param array $terminal_form
+// */
+//function _commerce_rbspayment_order_transaction_payment_terminal_refund_modify(array &$terminal_form) {
+//  $terminal_form['#title'] = t('Money refund to client');
+//  $terminal_form['amount']['#title'] = t('Refund sum');
+//  $terminal_form['amount']['#default_value'] = -$terminal_form['amount']['#default_value'];
+//  $terminal_form['#element_validate'][] = 'commerce_rbspayment_order_transaction_add_form_payment_terminal_validate';
+//
+//  $terminal_form['payment_details']['mode'] = array(
+//    '#type' => 'hidden',
+//    '#value' => 'terminal_refund',
+//  );
+//}
+//
+///**
+// * @param array $form
+// * @param object $order
+// */
+//function _commerce_rbspayment_order_transaction_payment_terminal_add_payment_modify(array &$form, $order) {
+//  $form['payment_terminal']['amount']['#disabled'] = TRUE;
+//  $form['payment_terminal']['currency_code']['#disabled'] = TRUE;
+//  unset($form['payment_terminal']['payment_details']);
+//  $form['payment_terminal']['user_url'] = array(
+//    '#type' => 'textfield',
+//    '#title' => t('URL for user to follow to add payment'),
+//    '#value' => url("user/{$order->uid}/orders/{$order->order_id}/rbspayment_add_payment", array('absolute' => TRUE)),
+//    '#size' => 80,
+//  );
+//  unset($form['actions']['submit']);
+//}
+//
+///**
+// * @param array $element
+// * @param array $form_state
+// */
+//function commerce_rbspayment_order_transaction_add_form_payment_terminal_validate($element, &$form_state) {
+//  if (!empty($form_state['payment_method']) && !empty($form_state['values']['amount'])) {
+//    form_set_value($element['amount'], -$form_state['values']['amount'], $form_state);
+//  }
+//}
+//
+///**
+// * Payment method callback: payment redirect form.
+// */
+//function commerce_rbspayment_redirect_form($form, &$form_state, $order) {
+//  $back_url = url("/checkout/{$order->order_id}/rbspayment_response", array('absolute' => TRUE));
+//  $fail_url = url("/checkout/{$order->order_id}/rbspayment_fail", array('absolute' => TRUE));
+//
+//  $balance = commerce_payment_order_balance($order);
+//  $rbs_terminal_url = _commerce_rbspayment_register_rbs_transaction($order, $balance['amount'], $balance['currency_code'], $back_url, $fail_url);
+//
+//  if ($rbs_terminal_url){
+//    drupal_goto($rbs_terminal_url);
+//  }
+//
+//  // We have an error registering RBS transaction so we want error message to be displayed
+//  // and link to return to previous step provided to user.
+//  $form['back'] = array(
+//    '#type' => 'link',
+//    '#href' => _commerce_rbspayment_get_checkout_payment_back_url($order),
+//    '#title' => t('Back to checkout page'),
+//  );
+//
+//  return $form;
+//}
+//
+///**
+// * Creates form to ask user to redirect them to payment gate.
+// *
+// * @param string $back_url
+// *   Url to redirect user after when he returns from payment gate.
+// * @param string $fail_url
+// *   Url to redirect user after when he returns from payment gate.
+// *
+// * @return array
+// *   Redirect form.
+// */
+//function _commerce_rbspayment_payment_redirect_form($back_url, $fail_url) {
+//  $form['back_url'] = array(
+//    '#type' => 'value',
+//    '#value' => $back_url,
+//  );
+//  $form['fail_url'] = array(
+//    '#type' => 'value',
+//    '#value' => $fail_url,
+//  );
+//  $form['actions'] = array(
+//    '#type' => 'actions',
+//  );
+//  $form['actions']['submit'] = array(
+//    '#type' => 'submit',
+//    '#value' => t('Pay via Bank Card'),
+//  );
+//
+//  return $form;
+//}
+//
+///**
+// * @param array $form
+// * @param array $form_state
+// */
+//function commerce_rbspayment_form_commerce_checkout_form_checkout_alter(&$form, &$form_state) {
+//  $order = &$form_state['order'];
+//
+//  // Workarounding commerce_payment losing messages on redirect.
+//  if (isset($order->data['commerce_rbspayment']['last_error_message'])) {
+//    drupal_set_message($order->data['commerce_rbspayment']['last_error_message'], 'error');
+//    unset($order->data['commerce_rbspayment']['last_error_message']);
+//    commerce_order_save($order);
+//  }
+//}
+//
+///**
+// * Checks pending commerce transactions.
+// *
+// * Iterates over all pending commerce_rbspayment transactions in orders,
+// * checks their state in RBS and changes their status correspondingly.
+// */
+//function commerce_rbspayment_check_pending_transactions() {
+//  $transactions = commerce_payment_transaction_load_multiple(array(), array(
+//       commerce_rbspayment_transaction_reverse($transaction);
+//      $refund_amount_remains -= $transaction_amount;
+//    }
+//    else {
+//      $transaction_amount_to_refund = commerce_currency_convert($refund_amount_remains, $currency_code, $transaction->currency_code);
+//      commerce_rbspayment_transaction_partial_refund($transaction, $transaction_amount_to_refund);
+//      $refund_amount_remains = 0;
+//    }
+//
+//    if ($refund_amount_remains == 0) {
+//      break;
+//    }
+//  }
+//
+//  if ($refund_amount_remains == 0) {
+//    drupal_set_message(t('Total %amount refunded.', array(
+//      '%amount' => commerce_currency_format($refund_amount, $currency_code)
+//    )));
+//  }
+//}
+//
+///**
+// * @param object $order
+// * @param string $currency_code
+// *
+// * @return int
+// */
+//function _commerce_rbspayment_get_order_rbs_transactions_balance($order, $currency_code) {
+//  $transactions = _commerce_rbspayment_get_order_rbs_transactions($order);
+//
+//  $transaction_balance = array_reduce($transactions, function ($balance, $transaction) use ($currency_code) {
+//    return $balance + commerce_currency_convert($transaction->amount, $transaction->currency_code, $currency_code);
+//  }, 0);
+//
+//  return $transaction_balance;
+//}
+//
+///**
+// * @param object $order
+// * @param string $status_filter
+// * @param array $remote_status_filter
+// *
+// * @return array
+// */
+//function _commerce_rbspayment_get_order_rbs_transactions($order, $status_filter = '', array $remote_status_filter = array()) {
+//  $conditions = array(
+//    'order_id' => $order->order_id,
+//    'payment_method' => 'commerce_rbspayment',
+//  );
+//
+//  $transactions = commerce_payment_transaction_load_multiple(array(), $conditions);
+//  if ($status_filter) {
+//    $transactions = array_filter($transactions, function ($transaction) use ($status_filter) {
+//      return $transaction->status == $status_filter;
+//    });
+//  }
+//  if ($remote_status_filter) {
+//    $transactions = array_filter($transactions, function ($transaction) use ($remote_status_filter) {
+//      return in_array($transaction->remote_status, $remote_status_filter);
+//    });
+//  }
+//
+//  return $transactions;
+//}
+//
+///**
+// * @param object $order
+//   'status' => COMMERCE_PAYMENT_STATUS_PENDING,
+//    'payment_method' => 'commerce_rbspayment',
+//  ));
+//
+//  if (!$transactions) {
+//    watchdog('commerce_rbspayment', 'No pending transactions found', array(), WATCHDOG_INFO);
+//    return;
+//  }
+//
+//  watchdog('commerce_rbspayment', 'Pending transactions found: %num_transactions',
+//    array('%num_transactions' => count($transactions)), WATCHDOG_NOTICE);
+//
+//  $unfinished_statuses_transitions = commerce_rbspayment_unfinished_payments_statuses();
+//
+//  $transactions_deadline = REQUEST_TIME - 60 * variable_get('commerce_rbspayment_payment_process_timeout');
+//  foreach ($transactions as $transaction) {
+//    if ($transaction->created >= $transactions_deadline) {
+//      // We gonna process it later, as now it can be interacted by user at payment gate.
+//      continue;
+//    }
+//
+//    $response = _commerce_rbspayment_api()->getOrderStatusByRBSOrderId($transaction->remote_id);
+//    if (isset($response['errorCode']) && $response['errorCode'] != 0) {
+//      watchdog('commerce_rbspayment', 'Failed to get RBS status for pending transaction %transaction_id for order %order_id. Remote transaction id %remote_id',
+//        array(
+//          '%transaction_id' => $transaction->transaction_id,
+//          '%order_id' => $transaction->order_id,
+//          '%remote_id' => $transaction->remote_id,
+//        ), WATCHDOG_NOTICE);
+//      continue;
+//    }
+//
+//    _commerce_rbspayment_set_transaction_status($transaction, $response['orderStatus']);
+//    _commerce_rbspayment_save_revisioned_payment_transaction($transaction,
+//      t('Transaction state synchronized with RBS via cron.'));
+//
+//    // @TODO: Need to check that there were no other transactions after this one to prevent messing order statuses.
+//    $order = commerce_order_load($transaction->order_id);
+//    _commerce_rbspayment_unfinished_order_status_change($order, $response['orderStatus'], $unfinished_statuses_transitions);
+//
+//    watchdog('commerce_rbspayment', 'Pending transaction %transaction_id updated for order %order_id: %status',
+//      array(
+//        '%transaction_id' => $transaction->transaction_id,
+//        '%order_id' => $transaction->order_id,
+//        '%status' => $response['orderStatus'],
+//      ), WATCHDOG_NOTICE);
+//  }
+//}
+//
+///**
+// * Check if the order has RBS payment method selected or RBS processing data saved.
+// *
+// * @param object $order
+// *
+// * @return bool
+// */
+//function _commerce_rbspayment_check_order_rbspayment_payment_method($order) {
+//  if (isset($order->data['commerce_rbspayment']) && !empty($order->data['commerce_rbspayment'])) {
+//    return TRUE;
+//  }
+//
+//  if (!isset($order->data['payment_method']) || empty($order->data['payment_method'])) {
+//    return FALSE;
+//  }
+//
+//  // Looks hacky but found in commerce_payment.rules.inc so considered valid.
+//  list($method_id,) = explode('|', $order->data['payment_method']);
+//
+//  return $method_id == 'commerce_rbspayment';
+//}
+//
+///**
+// * @param object $order
+// *
+// * @return string
+// */
+//function _commerce_rbspayment_get_checkout_payment_back_url($order) {
+//  return "/checkout/{$order->order_id}/payment/back/{$order->data['payment_redirect_key']}";
+//}
+//
+///**
+// * @param object $order
+// * @param int $amount
+// * @param string $currency_code
+// * @param string $back_url
+// * @param string $fail_url
+// *
+// * @return string
+// *  RBS payment terminal URL to redirect to or empty string if something went wrong.
+// */
+//function _commerce_rbspayment_register_rbs_transaction($order, $amount, $currency_code, $back_url, $fail_url) {
+//  $order_id = _commerce_rbspayment_get_register_order_id($order);
+//
+//  $order_info = array_map(function ($token_string) use ($order) {
+//    $value = token_replace($token_string, array('commerce-order' => $order), array('sanitize' => FALSE));
+//    return filter_var(str_replace('&', '', $value), FILTER_SANITIZE_STRING);
+//  }, commerce_rbspayment_get_token_variables_list());
+//
+//  $json_params = array();
+//  drupal_alter('commerce_rbspayment_order_json_params', $json_params, $order, $back_url, $fail_url);
+//
+//  $currency_iso_code = _commerce_rbspayment_get_currency_by_iso_code($currency_code);
+//  // We deliberately pass $back_url as 'failUrl' as we want to be redirected to the same url in all cases.
+//  $response = _commerce_rbspayment_api()->registerOrder($order_id, $amount, $currency_iso_code,
+//    $back_url, $back_url, $order_info['description'], $order_info['language'], $json_params);
+//
+//  $is_registered = !isset($response['errorCode']) || $response['errorCode'] == 0;
+//  if ($is_registered) {
+//    commerce_rbspayment_create_transaction($order, CommerceRBSPaymentAPI::orderStatusPending,
+//      $amount, $currency_code, $response['orderId']);
+//  }
+//  else {
+//    drupal_set_message($response['errorMessage'], 'error');
+//  }
+//
+//  return $is_registered ? $response['formUrl'] : '';
+//}
+//
+///**
+// * Returns "unique" order_id to register it in RBS.
+// *
+// * @param object $order
+// * @return string
+// */
+//function _commerce_rbspayment_get_register_order_id($order) {
+//  $transactions = _commerce_rbspayment_get_order_rbs_transactions($order);
+//  $order_id_suffix = $transactions
+//    ? '/' . count($transactions) : '';
+//
+//  return "{$order->order_id}{$order_id_suffix}";
+//}
+//
+///**
+// * @param object $order
+// * @param int $refund_amount
+// * @param string $currency_code
+// */
+//function commerce_rbspayment_order_refund_amount($order, $refund_amount, $currency_code) {
+//  $balance = _commerce_rbspayment_get_order_rbs_transactions_balance($order, $currency_code);
+//  if ($balance < $refund_amount) {
+//    drupal_set_message(t('Inconsistency! Transactions balance is not big enough to refund this amount.'), 'error');
+//    return;
+//  }
+//
+//  $reversible_transactions = _commerce_rbspayment_get_order_rbs_transactions($order, COMMERCE_PAYMENT_STATUS_SUCCESS);
+//  // We want to start with smaller amount transactions to keep few bigger transactions untouched.
+//  uasort($reversible_transactions, function ($tr1, $tr2) use ($currency_code) {
+//    $amount1 = commerce_currency_convert($tr1->amount, $tr1->currency_code, $currency_code);
+//    $amount2 = commerce_currency_convert($tr2->amount, $tr2->currency_code, $currency_code);
+//    return ($amount1 == $amount2) ? 0 : (($amount1 < $amount2) ? -1 : 1);
+//  });
+//
+//  $refund_amount_remains = $refund_amount;
+//  foreach ($reversible_transactions as $transaction) {
+//    $transaction_amount = commerce_currency_convert($transaction->amount, $transaction->currency_code, $currency_code);
+//    if ($refund_amount_remains >= $transaction_amount) {
+//      commerce_rbspayment_transaction_reverse($transaction);
+//      $refund_amount_remains -= $transaction_amount;
+//    }
+//    else {
+//      $transaction_amount_to_refund = commerce_currency_convert($refund_amount_remains, $currency_code, $transaction->currency_code);
+//      commerce_rbspayment_transaction_partial_refund($transaction, $transaction_amount_to_refund);
+//      $refund_amount_remains = 0;
+//    }
+//
+//    if ($refund_amount_remains == 0) {
+//      break;
+//    }
+//  }
+//
+//  if ($refund_amount_remains == 0) {
+//    drupal_set_message(t('Total %amount refunded.', array(
+//      '%amount' => commerce_currency_format($refund_amount, $currency_code)
+//    )));
+//  }
+//}
+//
+///**
+// * @param object $order
+// * @param string $currency_code
+// *
+// * @return int
+// */
+//function _commerce_rbspayment_get_order_rbs_transactions_balance($order, $currency_code) {
+//  $transactions = _commerce_rbspayment_get_order_rbs_transactions($order);
+//
+//  $transaction_balance = array_reduce($transactions, function ($balance, $transaction) use ($currency_code) {
+//    return $balance + commerce_currency_convert($transaction->amount, $transaction->currency_code, $currency_code);
+//  }, 0);
+//
+//  return $transaction_balance;
+//}
+//
+///**
+// * @param object $order
+// * @param string $status_filter
+// * @param array $remote_status_filter
+// *
+// * @return array
+// */
+//function _commerce_rbspayment_get_order_rbs_transactions($order, $status_filter = '', array $remote_status_filter = array()) {
+//  $conditions = array(
+//    'order_id' => $order->order_id,
+//    'payment_method' => 'commerce_rbspayment',
+//  );
+//
+//  $transactions = commerce_payment_transaction_load_multiple(array(), $conditions);
+//  if ($status_filter) {
+//    $transactions = array_filter($transactions, function ($transaction) use ($status_filter) {
+//      return $transaction->status == $status_filter;
+//    });
+//  }
+//  if ($remote_status_filter) {
+//    $transactions = array_filter($transactions, function ($transaction) use ($remote_status_filter) {
+//      return in_array($transaction->remote_status, $remote_status_filter);
+//    });
+//  }
+//
+//  return $transactions;
+//}
+//
+///**
+// * @param object $order
+// * @param string $rbs_order_id
+// *
+// * @return object|NULL
+// */
+//function _commerce_rbspayment_get_order_rbs_transaction($order, $rbs_order_id) {
+//  $transactions = commerce_payment_transaction_load_multiple(array(), array(
+//    'order_id' => $order->order_id,
+//    'remote_id' => $rbs_order_id,
+//  ));
+//
+//  return $transactions ? reset($transactions) : NULL;
+//}
+//
+///**
+// * @param object $order
+// * @param int $remote_status
+// * @param int $amount
+// * @param string $currency
+// * @param string $remote_id
+// *  RBS order id.
+// * @param array $data
+// *
+// * @return object
+// */
+//function commerce_rbspayment_create_transaction($order, $remote_status, $amount, $currency,
+//        $remote_id, array $data = array()) {
+//  $transaction = commerce_payment_transaction_new('commerce_rbspayment', $order->order_id);
+//  $transaction->amount = $amount;
+//  $transaction->remote_id = $remote_id;
+//  $transaction->currency_code = $currency;
+//  $transaction->created = REQUEST_TIME;
+//  $transaction->data = $data;
+//
+//  $transaction->instance_id = _commerce_rbspayment_get_payment_method_instance_id();
+//
+//  _commerce_rbspayment_set_transaction_status($transaction, $remote_status);
+//
+//  commerce_payment_transaction_save($transaction);
+//
+//  return $transaction;
+//}
+//
+///**
+// * Sets transaction 'status' and 'message' depending on RBS status.
+// *
+// * @param object $transaction
+// * @param int $remote_status
+// */
+//function _commerce_rbspayment_set_transaction_status(&$transaction, $remote_status) {
+//  $transaction->remote_status = $remote_status;
+//
+//  switch ($remote_status) {
+//    case CommerceRBSPaymentAPI::orderStatusPending:
+//    case CommerceRBSPaymentAPI::orderStatusPreHold:
+//      $transaction->status = COMMERCE_PAYMENT_STATUS_PENDING;
+//      $transaction->message = t('Payment is pending.');
+//      break;
+//
+//    case CommerceRBSPaymentAPI::orderStatusAuthorized:
+//      $transaction->status = COMMERCE_PAYMENT_STATUS_SUCCESS;
+//      $transaction->message = t('Payment is complete.');
+//      break;
+//
+//    case CommerceRBSPaymentAPI::orderStatusDeclined:
+//      $transaction->status = COMMERCE_PAYMENT_STATUS_FAILURE;
+//      $transaction->message = t('Payment has failed.');
+//      break;
+//
+//    case CommerceRBSPaymentAPI::orderStatusPartlyRefunded:
+//      $transaction->status = COMMERCE_PAYMENT_STATUS_SUCCESS;
+//      $transaction->message = t('Payment has been partly refunded.');
+//      break;
+//
+//    case CommerceRBSPaymentAPI::orderStatusReversed:
+//      $transaction->status = COMMERCE_PAYMENT_STATUS_SUCCESS;
+//      $transaction->message = t('Payment has been refunded.');
+//      break;
+//  }
+//}
+//
+//
+///**
+// * Changing status of given unfinished order according to last RBS transaction status and $status_transitions
+// * information about order status transition.
+// *
+// * @param object $order
+// * @param string $rbs_transaction_status
+// * @param array $status_transitions
+// *
+// * @return boolean
+// */
+//function _commerce_rbspayment_unfinished_order_status_change($order, $rbs_transaction_status, array $status_transitions) {
+//  if (!isset($status_transitions[$order->status])) {
+//    watchdog('commerce_rbspayment', 'No status transition found so skipping status change for %order_id in "%status"',
+//      array('%order_id' => $order->order_id, '%status' => $order->status), WATCHDOG_NOTICE);
+//    return FALSE;
+//  }
+//
+//  switch ($rbs_transaction_status) {
+//    case CommerceRBSPaymentAPI::orderStatusDeclined:
+//      $next_status = $status_transitions[$order->status]['fail_status'];
+//      break;
+//
+//    case CommerceRBSPaymentAPI::orderStatusAuthorized:
+//      $next_status = $status_transitions[$order->status]['success_status'];
+//      break;
+//
+//    default:
+//      return FALSE;
+//  }
+//
+//  commerce_order_status_update($order, $next_status, FALSE, TRUE,
+//    t('Unfinished payment order status fixed'));
+//  if ($next_status == 'checkout_complete') {
+//    commerce_checkout_complete($order);
+//  }
+//
+//  return TRUE;
+//}
+//
+///**
+// * @param object $transaction
+// *
+// * @return bool
+// */
+//function commerce_rbspayment_transaction_reverse($transaction) {
+//  $rbs_order_id = $transaction->remote_id;
+//  $response = _commerce_rbspayment_api()->reverseOrderPayment($rbs_order_id);
+//  if ($response['errorCode'] == 0) {
+//    $transaction->amount = 0;
+//    _commerce_rbspayment_set_transaction_status($transaction, CommerceRBSPaymentAPI::orderStatusReversed);
+//    _commerce_rbspayment_save_revisioned_payment_transaction($transaction,
+//      t('Transaction successfully reverted via admin interface'));
+//
+//    return TRUE;
+//  }
+//  else {
+//    drupal_set_message(t('Failed to revert payment: %message', array(
+//      '%message' => $response['errorMessage'])
+//    ), 'error');
+//
+//    return FALSE;
+//  }
+//}
+//
+///**
+// * @param object $transaction
+// * @param int $refund_amount
+// *  denominated in currency of this transaction.
+// *
+// * @return bool
+// */
+//function commerce_rbspayment_transaction_partial_refund($transaction, $refund_amount) {
+//  $rbs_order_id = $transaction->remote_id;
+//  $response = _commerce_rbspayment_api()->refundOrderPayment($rbs_order_id, $refund_amount);
+//  if ($response['errorCode'] == 0) {
+//    $transaction->amount -= $refund_amount;
+//    _commerce_rbspayment_set_transaction_status($transaction, CommerceRBSPaymentAPI::orderStatusPartlyRefunded);
+//    _commerce_rbspayment_save_revisioned_payment_transaction($transaction,
+//      t('Transaction partly refunded for !amount via admin interface', array(
+//        '!amount' => commerce_currency_format($refund_amount, $transaction->currency_code)
+//      ))
+//    );
+//
+//    return TRUE;
+//  }
+//  else {
+//    drupal_set_message(t('Partial refund failed: %message', array(
+//      '%message' => $response['errorMessage'])
+//    ), 'error');
+//
+//    return FALSE;
+//  }
+//}
+//
+///**
+// * Returns associated array of token variables and their values.
+// *
+// * @return array
+// */
+//function commerce_rbspayment_get_token_variables_list() {
+//  module_load_include('inc', 'variable', 'variable');
+//
+//  $token_variables = variable_list_group('commerce_rbspayment_order_tokens');
+//
+//  $result = array();
+//  foreach (array_keys($token_variables) as $variable_name) {
+//    $key = substr($variable_name, strlen('commerce_rbspayment_tokens_'));
+//    $result[$key] = variable_get_value($variable_name);
+//  }
+//
+//  return $result;
+//}
+//
+///**
+// * @param array $form
+// */
+//function commerce_rbspayment_form_variable_group_form_alter(&$form) {
+//  if (isset($form['#variable_group_form']) && $form['#variable_group_form'] == 'commerce_rbspayment_main_settings') {
+//    $form['#submit'][] = '_commerce_rbspayment_variable_group_main_settings_submit';
+//  }
+//}
+//
+///**
+// * @param array $form
+// * @param array $form_state
+// */
+//function _commerce_rbspayment_variable_group_main_settings_submit($form, &$form_state) {
+//  $required_variables = array(
+//    'commerce_rbspayment_merchant_login',
+//    'commerce_rbspayment_password',
+//    'commerce_rbspayment_server_timeout'
+//  );
+//  foreach ($required_variables as $key) {
+//    if (!isset($form_state['values'][$key]) || empty($form_state['values'][$key])) {
+//      return;
+//    }
+//  }
+//
+//  $result = _commerce_rbspayment_api()->getOrderStatusByOrderId(0);
+//
+//  if (isset($result['errorCode']) && $result['errorCode'] == 6) {
+//    // There should never be order with ID "0" registered so we should get this particular error code.
+//    drupal_set_message(t('RBS payment API connection checked: success!'));
+//  }
+//  else {
+//    drupal_set_message(t('Error while checking API connection! @message', array('@message' => $result['errorMessage'])), 'warning');
+//  }
+//}
+//
+///**
+// * @param object $transaction
+// * @param string $log_message
+// */
+//function _commerce_rbspayment_save_revisioned_payment_transaction($transaction, $log_message) {
+//  $transaction->revision = TRUE;
+//  $transaction->log = $log_message;
+//  commerce_payment_transaction_save($transaction);
+//}
+//
+///**
+// * @param object $order
+// * @param string $log_message
+// */
+//function _commerce_rbspayment_save_revisioned_order($order, $log_message) {
+//  $order->revision = TRUE;
+//  $order->log = $log_message;
+//  commerce_order_save($order);
+//}
+//
+///**
+// * @param string $iso_code
+// *
+// * @return string
+// */
+//function _commerce_rbspayment_get_currency_code_by_iso($iso_code) {
+//  // If RBS operates with RUR we force it here to be RUB
+//  if ($iso_code == 810) {
+//    $iso_code = 643;
+//  }
+//
+//  $currencies = array_filter(commerce_currencies(), function ($currency) use ($iso_code) {
+//    return isset($currency['numeric_code']) && $currency['numeric_code'] == $iso_code;
+//  });
+//
+//  if (!$currencies) {
+//    return '';
+//  }
+//
+//  $currency_codes = array_keys($currencies);
+//  return $currency_codes[0];
+//}
+//
+///**
+// * @return string
+// */
+//function _commerce_rbspayment_get_payment_method_instance_id() {
+//  $event = rules_get_cache('event_commerce_payment_methods');
+//
+//  if (empty($event)) {
+//    // This should never happen in regular environment.
+//    return '';
+//  }
+//
+//  $method_id = 'commerce_rbspayment';
+//  // Look for a Rule enabling this payment method.
+//  foreach ($event->getIterator() as $rule) {
+//    foreach ($rule->actions() as $action) {
+//      // If an action is found, add its instance to the options array.
+//      if ($action->getElementName() == 'commerce_payment_enable_'.$method_id) {
+//        return commerce_payment_method_instance_id($method_id, $rule);
+//      }
+//    }
+//  }
+//
+//  // This should never happens in regular environment.
+//  return '';
+//}
+///**
+// * @param array $arr
+// *
+// * @return array
+// */
+//function _commerce_rbspayment_convert_associative_to_rows(array $arr) {
+//  return array_map(function ($key) use ($arr) {
+//    return array($key, $arr[$key]);
+//  }, array_keys($arr));
+//}
+//
